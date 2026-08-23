@@ -91,14 +91,16 @@
     const fire = () => {
       const n = nodes[k % nodes.length], dot = $('#od' + (k % nodes.length), svg);
       nodes.forEach(x => x.classList.remove('is-lit')); n.classList.add('is-lit');
-      gsap.fromTo(dot, { opacity: 1 }, { duration: 1.4, ease: 'power2.inOut', motionPath: { path: '#op' + (k % nodes.length), align: '#op' + (k % nodes.length), alignOrigin: [0.5, 0.5] }, onComplete: () => {
+      const land = () => {
         gsap.to(dot, { opacity: 0, duration: 0.2 });
         const row = rows[k % rows.length]; row.classList.add('is-on');
         gsap.fromTo(core, { boxShadow: '0 0 0 1px rgba(6,182,212,0.9), 0 0 60px -5px rgba(6,182,212,0.9)' }, { boxShadow: '0 0 0 1px rgba(6,182,212,0.25), 0 0 40px -10px rgba(6,182,212,0.45)', duration: 0.9 });
         if (bar) gsap.to(bar, { width: Math.min(100, ((k % rows.length) + 1) / rows.length * 100) + '%', duration: 0.6, ease: 'power2.out' });
         if ((k + 1) % rows.length === 0) setTimeout(() => rows.forEach(r => r.classList.remove('is-on')), 1800);
         k++;
-      } });
+      };
+      gsap.fromTo(dot, { opacity: 1 }, { duration: 1.4, ease: 'power2.inOut', motionPath: { path: '#op' + (k % nodes.length), align: '#op' + (k % nodes.length), alignOrigin: [0.5, 0.5] } });
+      setTimeout(land, 1420);
     };
     fire(); setInterval(fire, 2200);
     setTimeout(() => { if (!core.querySelector('.core__row.is-on')) { rows.forEach(r => r.classList.add('is-on')); if (bar) bar.style.width = '100%'; } }, 4000);
@@ -122,11 +124,15 @@
   $$('.sorter').forEach(sorter => onVisible(sorter, (el) => {
     const list = $('.sorter__list', el), sources = $$('.src', el);
     const queue = [
-      { src: 1, icon: 'ph-chat-circle-text', who: 'Maria S.', text: 'Can you call me at 10? I need to sell this month.', tag: 'hot' },
-      { src: 0, icon: 'ph-envelope-simple', who: 'D. Torres', text: 'What is your timeline usually? Just exploring.', tag: 'warm' },
-      { src: 2, icon: 'ph-messenger-logo', who: 'J. Kim', text: 'Sent the address. Tenants leave next week.', tag: 'hot' },
-      { src: 3, icon: 'ph-instagram-logo', who: 'A. Reyes', text: 'Not now, maybe next spring.', tag: 'now' },
       { src: 1, icon: 'ph-chat-circle-text', who: 'R. Patel', text: 'Yes, I want an offer. Roof needs work.', tag: 'hot' },
+      { src: 4, icon: 'ph-phone-call', who: 'B. Okafor', text: 'Missed call, 2 min ago. Text-back sent.', tag: 'warm' },
+      { src: 0, icon: 'ph-envelope-simple', who: 'L. Nguyen', text: 'Please send the offer in writing.', tag: 'warm' },
+      { src: 2, icon: 'ph-messenger-logo', who: 'C. Alvarez', text: 'How fast can you close? Probate finished.', tag: 'hot' },
+      { src: 3, icon: 'ph-instagram-logo', who: 'T. Brooks', text: 'Just looking at options for now.', tag: 'now' },
+      { src: 1, icon: 'ph-chat-circle-text', who: 'S. Whitfield', text: 'Tenant moved out. Ready to talk numbers.', tag: 'hot' },
+      { src: 0, icon: 'ph-envelope-simple', who: 'G. Meyer', text: 'What does as-is actually mean here?', tag: 'warm' },
+      { src: 4, icon: 'ph-phone-call', who: 'H. Castillo', text: 'Call me after 6, I work days.', tag: 'hot' },
+      { src: 3, icon: 'ph-instagram-logo', who: 'P. Lindqvist', text: 'Maybe after the holidays.', tag: 'now' },
     ];
     const rank = { hot: 0, warm: 1, now: 2 };
     const render = (item) => { const m = document.createElement('div'); m.className = 'msg is-new'; m.dataset.tag = item.tag; m.innerHTML = `<i class="ph ${item.icon}"></i><div><b>${item.who}</b><span>${item.text}</span></div><span class="tag tag--${item.tag}">${item.tag === 'now' ? 'not now' : item.tag}</span>`; return m; };
@@ -140,13 +146,19 @@
       const item = queue[i % queue.length]; const src = sources[item.src];
       sources.forEach(s => s.classList.remove('is-fire')); src && src.classList.add('is-fire');
       const m = render(item);
-      if (list.children.length >= 5) { const last = list.lastElementChild; if (hasGsap && !reduced) gsap.to(last, { opacity: 0, x: 20, duration: 0.3, onComplete: () => last.remove() }); else last.remove(); }
+      while (list.children.length >= 5) {
+        const last = list.lastElementChild;
+        if (hasGsap && !reduced) { gsap.to(last, { opacity: 0, x: 20, duration: 0.3 }); setTimeout(() => last.remove(), 320); }
+        else last.remove();
+        break;
+      }
       if (hasGsap && !reduced && src) {
         const fly = document.createElement('div'); fly.className = 'flying'; fly.innerHTML = `<i class="ph ${item.icon}"></i>`; el.appendChild(fly);
         const er = el.getBoundingClientRect(), sr = src.getBoundingClientRect(), lr = list.getBoundingClientRect();
         gsap.set(fly, { x: sr.left - er.left + 4, y: sr.top - er.top + 4 });
-        gsap.to(fly, { x: lr.left - er.left + 8, y: lr.top - er.top + 8, duration: 0.7, ease: 'power2.inOut', onComplete: () => { fly.remove(); list.prepend(m); gsap.from(m, { opacity: 0, scale: 0.96, duration: 0.3 }); setTimeout(() => { resort(); setTimeout(() => m.classList.remove('is-new'), 900); }, 500); } });
-      } else { list.prepend(m); resort(); }
+        gsap.to(fly, { x: lr.left - er.left + 8, y: lr.top - er.top + 8, duration: 0.7, ease: 'power2.inOut' });
+        setTimeout(() => { fly.remove(); list.prepend(m); setTimeout(() => { resort(); setTimeout(() => m.classList.remove('is-new'), 900); }, 400); }, 720);
+      } else { list.prepend(m); resort(); setTimeout(() => m.classList.remove('is-new'), 900); }
       i++;
     };
     tick(); setInterval(tick, 2600);
@@ -170,7 +182,8 @@
       const chip = document.createElement('div'); chip.className = 'chip-fly'; chip.textContent = item.chip; sc.appendChild(chip);
       const r0 = mark.getBoundingClientRect(), r1 = fact.getBoundingClientRect(), rs = sc.getBoundingClientRect();
       gsap.set(chip, { x: r0.left - rs.left, y: r0.top - rs.top, scale: 0.9 });
-      gsap.to(chip, { x: r1.left - rs.left + 10, y: r1.top - rs.top + 10, scale: 0.7, opacity: 0.2, duration: 0.8, ease: 'power3.inOut', onComplete: () => { chip.remove(); fact.classList.add('is-on'); } });
+      gsap.to(chip, { x: r1.left - rs.left + 10, y: r1.top - rs.top + 10, scale: 0.7, opacity: 0.2, duration: 0.8, ease: 'power3.inOut' });
+      setTimeout(() => { chip.remove(); fact.classList.add('is-on'); }, 820);
     };
     const typeLine = () => {
       const item = lines[i % lines.length]; if (i % lines.length === 0) facts.forEach(f => f.classList.remove('is-on'));
@@ -206,16 +219,21 @@
 
   /* ---------- Budget splitter (interactive) ---------- */
   $$('.splitter').forEach(sp => {
-    const range = $('input[type=range]', sp), meta = $('.fill--meta', sp), goog = $('.fill--google', sp), tMeta = $('.t-meta', sp), tGoog = $('.t-google', sp), total = parseFloat(sp.dataset.total || '100');
-    const H = 90, Y = 150; // bucket geometry in the svg
-    const apply = (p) => {
-      sp.style.setProperty('--p', p + '%');
-      if (meta) { meta.setAttribute('height', H * p / 100); meta.setAttribute('y', Y + H - H * p / 100); }
-      if (goog) { goog.setAttribute('height', H * (100 - p) / 100); goog.setAttribute('y', Y + H - H * (100 - p) / 100); }
-      if (tMeta) tMeta.textContent = `$${Math.round(total * p / 100)}/day`; if (tGoog) tGoog.textContent = `$${Math.round(total * (100 - p) / 100)}/day`;
-      $$('.flow--meta', sp).forEach(f => f.style.opacity = 0.3 + p / 100 * 0.7); $$('.flow--google', sp).forEach(f => f.style.opacity = 0.3 + (100 - p) / 100 * 0.7);
+    const range = $('input[type=range]', sp), total = parseFloat(sp.dataset.total || '100');
+    const set = (sel, prop, val) => { const el = $(sel, sp); if (el) { if (prop === 'text') el.textContent = val; else el.style[prop] = val; } };
+    const apply = (raw) => {
+      const m = Math.round(raw), g = 100 - m;
+      sp.style.setProperty('--p', m + '%');
+      set('.t-meta', 'text', Math.round(total * m / 100));
+      set('.t-google', 'text', Math.round(total * g / 100));
+      set('.p-meta', 'text', m);
+      set('.p-google', 'text', g);
+      set('.b-meta', 'width', m + '%');
+      set('.b-google', 'width', g + '%');
+      set('.flow--meta', 'strokeWidth', (2 + m / 100 * 7).toFixed(1));
+      set('.flow--google', 'strokeWidth', (2 + g / 100 * 7).toFixed(1));
     };
-    range && range.addEventListener('input', () => apply(+range.value)); apply(range ? +range.value : 64);
+    if (range) { range.addEventListener('input', () => apply(+range.value)); apply(+range.value); }
   });
 
   /* ---------- Automation graph: pulses along edges, nodes light up ---------- */
@@ -228,7 +246,8 @@
       const from = nodes.find(n => n.dataset.id === e.dataset.from), to = nodes.find(n => n.dataset.id === e.dataset.to);
       from && from.classList.add('is-lit');
       gsap.fromTo(c, { opacity: 0 }, { opacity: 1, duration: 0.2 });
-      gsap.to(c, { duration: 1.2, ease: 'power1.inOut', motionPath: { path: '#' + e.id, align: '#' + e.id, alignOrigin: [0.5, 0.5] }, onComplete: () => { c.remove(); to && to.classList.add('is-lit'); setTimeout(() => { from && from.classList.remove('is-lit'); }, 400); } });
+      gsap.to(c, { duration: 1.2, ease: 'power1.inOut', motionPath: { path: '#' + e.id, align: '#' + e.id, alignOrigin: [0.5, 0.5] } });
+      setTimeout(() => { c.remove(); to && to.classList.add('is-lit'); setTimeout(() => { from && from.classList.remove('is-lit'); }, 400); }, 1220);
     };
     let k = 0; run(0); setInterval(() => { k++; if (k % edges.length === 0) nodes.forEach(n => n.classList.remove('is-lit')); run(k); }, 1500);
   }, 0.3));
@@ -246,7 +265,8 @@
       const r0 = src.getBoundingClientRect(), r1 = slot.getBoundingClientRect(), rs = el.getBoundingClientRect();
       gsap.set(chip, { x: r0.left - rs.left + 8, y: r0.top - rs.top + 14, scale: 0.8, opacity: 0 });
       gsap.to(chip, { opacity: 1, duration: 0.2 });
-      gsap.to(chip, { x: r1.left - rs.left + 6, y: r1.top - rs.top + 6, scale: 0.9, duration: 0.9, ease: 'power3.inOut', onComplete: () => { chip.remove(); slot.classList.add('is-filled'); gsap.fromTo(slot, { scale: 1.04 }, { scale: 1, duration: 0.4 }); } });
+      gsap.to(chip, { x: r1.left - rs.left + 6, y: r1.top - rs.top + 6, scale: 0.9, duration: 0.9, ease: 'power3.inOut' });
+      setTimeout(() => { chip.remove(); slot.classList.add('is-filled'); }, 920);
       i++;
     };
     step(); setInterval(step, 1700);

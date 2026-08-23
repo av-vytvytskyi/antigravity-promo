@@ -6,6 +6,7 @@
 <title>Automations – visual workflows with guardrails</title>
 <meta name="description" content="A visual editor for triggers, timing windows, yes/no conditions and actions across SMS, email, tasks, stages and segments. Stops on reply, caps daily messages, respects send windows.">
 <meta name="theme-color" content="#070b14">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&family=Unbounded:wght@900&display=swap" rel="stylesheet">
@@ -50,6 +51,7 @@
   </div>
   <div class="nav__mobile" id="mobileMenu">
     <a href="platform.html">Platform</a><a href="ads.html">Ads</a><a href="inbox.html">Inbox &amp; AI ISA</a><a href="calls.html">Calls</a><a href="crm.html">CRM &amp; Deals</a><a href="automations.html">Automations</a><a href="studio.html">Creative Studio &amp; Web</a><a href="playbooks.html">Playbooks</a><a href="pricing.html">Pricing</a><a href="contact.html">Contact</a>
+    <a class="btn btn--primary" href="contact.html">Book a walkthrough</a>
   </div>
 </header>
 
@@ -75,7 +77,7 @@
     <div class="catalogue reveal">
       <div class="cat glass spot"><h3None><i class="ph-duotone ph-flow-arrow"></i>Triggers</h3><ul><li>New deal, new contact, stage changed</li><li>Inbound message: SMS, email, Messenger or any</li><li>Missed call</li><li>Added to segment, manual enroll</li><li>Webhook / API from Zapier, forms, any external system</li><li>Source-based: website form, PPC, referral, purchased list</li></ul></div>
       <div class="cat glass spot"><h3None><i class="ph-duotone ph-flow-arrow"></i>Timing &amp; conditions</h3><ul><li>Delay in hours or days</li><li>Send window with timezone</li><li>Stage is, contact type is</li><li>Deal score ≥ N</li><li>Has phone, has email</li><li>No reply, as a yes/no branch</li></ul></div>
-      <div class="cat glass spot"><h3None><i class="ph-duotone ph-star-four"></i>Actions</h3><ul><li>Send SMS or email from a template, with subject override</li><li>Create task with title, assignee and due-in-days</li><li>Add note, change stage</li><li>Assign owner: teammate, unassigned or round-robin</li><li>Add to a static segment</li><li>AI caller</li></ul></div>
+      <div class="cat glass spot"><h3None><i class="ph-duotone ph-lightning"></i>Actions</h3><ul><li>Send SMS or email from a template, with subject override</li><li>Create task with title, assignee and due-in-days</li><li>Add note, change stage</li><li>Assign owner: teammate, unassigned or round-robin</li><li>Add to a static segment</li><li>AI caller</li></ul></div>
     </div>
   </div>
 </section>
@@ -90,7 +92,7 @@
         <li><i class="ph-duotone ph-flow-arrow"></i><span>One active run per automation and subject, so nobody gets the same sequence twice</span></li>
         <li><i class="ph-duotone ph-chat-circle-text"></i><span>Daily message cap per contact across all automations</span></li>
         <li><i class="ph-duotone ph-clock-countdown"></i><span>Send windows evaluated in the node’s own timezone. 9am in Phoenix is 9am in Phoenix</span></li>
-        <li><i class="ph-duotone ph-shield-check"></i><span>DNC contacts are skipped everywhere, automatically</span></li>
+        <li><i class="ph-duotone ph-lightning"></i><span>DNC contacts are skipped everywhere, automatically</span></li>
       </ul>
     </div>
     <div class="chapter__visual reveal">

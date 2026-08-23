@@ -6,6 +6,7 @@
 <title>Calls – browser softphone, recordings, transcripts and fields that fill themselves</title>
 <meta name="description" content="Click-to-call on your own numbers, recording, live transcript, AI summary and deal fields extracted during the call. 10DLC registration, usage and credits included.">
 <meta name="theme-color" content="#070b14">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&family=Unbounded:wght@900&display=swap" rel="stylesheet">
@@ -50,6 +51,7 @@
   </div>
   <div class="nav__mobile" id="mobileMenu">
     <a href="platform.html">Platform</a><a href="ads.html">Ads</a><a href="inbox.html">Inbox &amp; AI ISA</a><a href="calls.html">Calls</a><a href="crm.html">CRM &amp; Deals</a><a href="automations.html">Automations</a><a href="studio.html">Creative Studio &amp; Web</a><a href="playbooks.html">Playbooks</a><a href="pricing.html">Pricing</a><a href="contact.html">Contact</a>
+    <a class="btn btn--primary" href="contact.html">Book a walkthrough</a>
   </div>
 </header>
 
@@ -102,7 +104,7 @@
       <ul class="caps">
         <li><i class="ph-duotone ph-phone-call"></i><span>Suggestions map to real CRM fields: asking price → comp price, callback time → high-priority task</span></li>
         <li><i class="ph-duotone ph-waveform"></i><span>Summaries are editable. Your notes win over the model’s</span></li>
-        <li><i class="ph-duotone ph-phone-call"></i><span>Calls also appear in the Inbox thread with the same contact, so SMS and voice read as one conversation</span></li>
+        <li><i class="ph-duotone ph-chat-circle-text"></i><span>Calls also appear in the Inbox thread with the same contact, so SMS and voice read as one conversation</span></li>
       </ul>
     </div>
     <div class="chapter__visual reveal">
@@ -118,9 +120,9 @@
       <p class="lead mt-2">Buy local numbers by area code, assign them to teammates, set a default caller ID per project. Register your brand and campaign for A2P 10DLC from inside the app and watch the carrier status until it is approved.</p>
       <ul class="caps">
         <li><i class="ph-duotone ph-phone-call"></i><span>Browser WebRTC softphone: mute, hold, hang up, floating widget that follows you across pages</span></li>
-        <li><i class="ph-duotone ph-phone-call"></i><span>Caller-ID resolution picks the right project number per user and deal</span></li>
-        <li><i class="ph-duotone ph-phone-call"></i><span>Answering-machine detection, missed call → instant AI text-back</span></li>
-        <li><i class="ph-duotone ph-phone-call"></i><span>Per-second billing beyond included minutes, prepaid credits, auto-recharge</span></li>
+        <li><i class="ph-duotone ph-kanban"></i><span>Caller-ID resolution picks the right project number per user and deal</span></li>
+        <li><i class="ph-duotone ph-chat-circle-text"></i><span>Answering-machine detection, missed call → instant AI text-back</span></li>
+        <li><i class="ph-duotone ph-coins"></i><span>Per-second billing beyond included minutes, prepaid credits, auto-recharge</span></li>
       </ul>
     </div>
     <div class="chapter__visual reveal">
@@ -137,7 +139,7 @@
       <ul class="caps">
         <li><i class="ph-duotone ph-phone-call"></i><span>Usage tab: included minutes, used and remaining, per-user breakdown, full call history with CSV export</span></li>
         <li><i class="ph-duotone ph-coins"></i><span>Credits tab: append-only ledger, balance, top-up, auto-recharge threshold</span></li>
-        <li><i class="ph-duotone ph-phone-call"></i><span>Real-time events over websockets: call updated, completed, summary ready, suggestions updated</span></li>
+        <li><i class="ph-duotone ph-waveform"></i><span>Real-time events over websockets: call updated, completed, summary ready, suggestions updated</span></li>
       </ul>
     </div>
     <div class="chapter__visual reveal">
@@ -152,10 +154,10 @@
     <div class="catalogue mt-4">
       <div class="cat glass spot reveal"><h3None><i class="ph-duotone ph-phone-call"></i>Softphone</h3><ul><li>Click-to-call from deals, contacts and threads</li><li>Mute, hold, hang up, floating widget</li><li>Caller-ID resolution per user and deal</li></ul></div>
       <div class="cat glass spot reveal"><h3None><i class="ph-duotone ph-lightning"></i>Intelligence</h3><ul><li>Recording with inline playback</li><li>Streaming transcript</li><li>AI summary: key points, next steps, editable</li><li>Field extraction every ~20s and on completion</li><li>Apply / Dismiss suggestions, idempotent</li></ul></div>
-      <div class="cat glass spot reveal"><h3None><i class="ph-duotone ph-target"></i>Numbers</h3><ul><li>Search by area code, contains, local</li><li>Purchase, default, assign, release (admins)</li><li>Answering-machine detection, missed-call text-back</li></ul></div>
+      <div class="cat glass spot reveal"><h3None><i class="ph-duotone ph-lightning"></i>Numbers</h3><ul><li>Search by area code, contains, local</li><li>Purchase, default, assign, release (admins)</li><li>Answering-machine detection, missed-call text-back</li></ul></div>
       <div class="cat glass spot reveal"><h3None><i class="ph-duotone ph-chat-circle-text"></i>SMS &amp; 10DLC</h3><ul><li>Brand and campaign registration wizard</li><li>Use case, sample messages, opt-in description</li><li>Carrier status tracking, enable numbers on approval</li></ul></div>
       <div class="cat glass spot reveal"><h3None><i class="ph-duotone ph-coins"></i>Billing</h3><ul><li>Per-second billing beyond plan minutes</li><li>Credits ledger, top-up, auto-recharge</li><li>Usage alerts at 80% and 100%</li></ul></div>
-      <div class="cat glass spot reveal"><h3None><i class="ph-duotone ph-sparkle"></i>Everywhere else</h3><ul><li>Calls in the deal timeline and the inbox thread</li><li>Missed call as an automation trigger</li><li>Call tasks created by the AI ISA handoff</li></ul></div>
+      <div class="cat glass spot reveal"><h3None><i class="ph-duotone ph-lightning"></i>Everywhere else</h3><ul><li>Calls in the deal timeline and the inbox thread</li><li>Missed call as an automation trigger</li><li>Call tasks created by the AI ISA handoff</li></ul></div>
     </div>
   </div>
 </section>

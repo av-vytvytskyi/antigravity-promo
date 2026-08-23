@@ -6,6 +6,7 @@
 <title>Antigravity – the operating system for real estate wholesalers</title>
 <meta name="description" content="Ads, inbox, calls, deals, buyers and contracts in one record per seller. AI answers, qualifies, transcribes and tells you which campaign paid for your last deal.">
 <meta name="theme-color" content="#070b14">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&family=Unbounded:wght@900&display=swap" rel="stylesheet">
@@ -50,6 +51,7 @@
   </div>
   <div class="nav__mobile" id="mobileMenu">
     <a href="platform.html">Platform</a><a href="ads.html">Ads</a><a href="inbox.html">Inbox &amp; AI ISA</a><a href="calls.html">Calls</a><a href="crm.html">CRM &amp; Deals</a><a href="automations.html">Automations</a><a href="studio.html">Creative Studio &amp; Web</a><a href="playbooks.html">Playbooks</a><a href="pricing.html">Pricing</a><a href="contact.html">Contact</a>
+    <a class="btn btn--primary" href="contact.html">Book a walkthrough</a>
   </div>
 </header>
 
@@ -178,7 +180,7 @@
       <h2 class="h2">Every channel lands in one list. The hot ones rise by themselves.</h2>
       <p class="lead">Email, SMS, Messenger, Instagram and calls arrive into one stream. Triage labels each message by intent and the list re-sorts: hot first, then warm, then everything that can wait.</p>
       <ul class="caps">
-        <li><i class="ph-duotone ph-shield-check"></i><span>Intents: hot, warm, not now, wrong number, stop, angry. STOP is caught by rules and flags DNC instantly</span></li>
+        <li><i class="ph-duotone ph-funnel"></i><span>Intents: hot, warm, not now, wrong number, stop, angry. STOP is caught by rules and flags DNC instantly</span></li>
         <li><i class="ph-duotone ph-phone-call"></i><span>The AI ISA answers in seconds, asks one question at a time, hands off with a call task when the seller is hot</span></li>
         <li><i class="ph-duotone ph-chat-circle-text"></i><span>Three AI draft styles, thread summary, Spanish translation, SMS deliverability coach</span></li>
       </ul>
@@ -193,7 +195,12 @@
           <div class="src"><i class="ph ph-instagram-logo"></i></div>
           <div class="src"><i class="ph ph-phone-call"></i></div>
         </div>
-        <div class="sorter__list"></div>
+        <div class="sorter__list">
+          <div class="msg" data-tag="hot"><i class="ph ph-chat-circle-text"></i><div><b>Maria S.</b><span>Can you call me at 10? I need to sell this month.</span></div><span class="tag tag--hot">hot</span></div>
+          <div class="msg" data-tag="hot"><i class="ph ph-messenger-logo"></i><div><b>J. Kim</b><span>Sent the address. Tenants leave next week.</span></div><span class="tag tag--hot">hot</span></div>
+          <div class="msg" data-tag="warm"><i class="ph ph-envelope-simple"></i><div><b>D. Torres</b><span>What is your timeline usually? Just exploring.</span></div><span class="tag tag--warm">warm</span></div>
+          <div class="msg" data-tag="now"><i class="ph ph-instagram-logo"></i><div><b>A. Reyes</b><span>Not now, maybe next spring.</span></div><span class="tag tag--now">not now</span></div>
+        </div>
       </div>
     </div>
   </div>
@@ -209,7 +216,7 @@
       <ul class="caps">
         <li><i class="ph-duotone ph-coins"></i><span>Address, asking price, condition, motivation, timeline and occupancy mapped to the deal</span></li>
         <li><i class="ph-duotone ph-phone-call"></i><span>“Call me tomorrow at ten” becomes a high-priority task at 10:00 tomorrow</span></li>
-        <li><i class="ph-duotone ph-phone-call"></i><span>Missed call → instant AI text-back, so the seller never waits</span></li>
+        <li><i class="ph-duotone ph-chat-circle-text"></i><span>Missed call → instant AI text-back, so the seller never waits</span></li>
       </ul>
       <div class="mt-3"><a class="btn btn--ghost" href="calls.html">Explore Calls <i class="ph ph-arrow-right"></i></a></div>
     </div>
@@ -243,30 +250,39 @@
       <ul class="caps">
         <li><i class="ph-duotone ph-coins"></i><span>Playbooks: Inherited house, Tired landlord, Needs repairs, Behind on payments, Fast cash sale</span></li>
         <li><i class="ph-duotone ph-sparkle"></i><span>Cost per deal: spend → leads → contracts → assignment fees, attributed per campaign and creative</span></li>
-        <li><i class="ph-duotone ph-sparkle"></i><span>Budget guards pause or alert when results stop, CPC rises or a creative tires</span></li>
+        <li><i class="ph-duotone ph-shield-check"></i><span>Budget guards pause or alert when results stop, CPC rises or a creative tires</span></li>
       </ul>
       <div class="mt-3"><a class="btn btn--ghost" href="ads.html">Explore Ads <i class="ph ph-arrow-right"></i></a></div>
     </div>
     <div class="chapter__visual">
       <div class="splitter glass" data-total="100">
-        <svg viewBox="0 0 520 260">
-          <path class="tube" d="M40 130 C 160 130, 180 70, 300 70 L 420 70"/>
-          <path class="tube" d="M40 130 C 160 130, 180 190, 300 190 L 420 190"/>
-          <path class="flow flow--meta" d="M40 130 C 160 130, 180 70, 300 70 L 420 70"/>
-          <path class="flow flow--google" d="M40 130 C 160 130, 180 190, 300 190 L 420 190"/>
-          <circle cx="40" cy="130" r="22" fill="rgba(34,211,238,0.15)" stroke="rgba(34,211,238,0.5)"/>
-          <text x="40" y="135" text-anchor="middle" style="font-size:12px">$100</text>
-          <text class="lbl" x="40" y="170" text-anchor="middle">DAILY</text>
-          <rect class="bucket" x="420" y="30" width="80" height="90" rx="12"/>
-          <rect class="fill fill--meta" x="420" y="30" width="80" height="0" rx="12"/>
-          <text x="460" y="14" text-anchor="middle" style="font-size:11px">Meta</text>
-          <text class="t-meta" x="460" y="82" text-anchor="middle">$64/day</text>
-          <rect class="bucket" x="420" y="150" width="80" height="90" rx="12"/>
-          <rect class="fill fill--google" x="420" y="150" width="80" height="0" rx="12"/>
-          <text x="460" y="134" text-anchor="middle" style="font-size:11px">Google</text>
-          <text class="t-google" x="460" y="202" text-anchor="middle">$36/day</text>
-        </svg>
-        <div class="splitter__ctl"><span><i class="ph ph-meta-logo"></i> Meta</span><input type="range" min="20" max="80" value="64" aria-label="Budget split"><span>Google <i class="ph ph-google-logo"></i></span></div>
+        <div class="splitter__stage">
+          <svg class="splitter__pipes" viewBox="0 0 520 260" aria-hidden="true">
+            <path class="tube" d="M104 130 C 190 130, 205 58, 300 58"/>
+            <path class="tube" d="M104 130 C 190 130, 205 202, 300 202"/>
+            <path class="flow flow--meta" d="M104 130 C 190 130, 205 58, 300 58"/>
+            <path class="flow flow--google" d="M104 130 C 190 130, 205 202, 300 202"/>
+          </svg>
+          <div class="splitter__src"><b>$100</b><span>daily</span></div>
+          <div class="alloc alloc--meta">
+            <div class="alloc__h"><i class="ph ph-meta-logo"></i> Meta</div>
+            <div class="alloc__val">$<span class="t-meta">64</span><small>/day</small></div>
+            <div class="alloc__bar"><i class="b-meta" style="width:64%"></i></div>
+            <div class="alloc__pct"><span class="p-meta">64</span>% of budget</div>
+          </div>
+          <div class="alloc alloc--google">
+            <div class="alloc__h"><i class="ph ph-google-logo"></i> Google</div>
+            <div class="alloc__val">$<span class="t-google">36</span><small>/day</small></div>
+            <div class="alloc__bar"><i class="b-google" style="width:36%"></i></div>
+            <div class="alloc__pct"><span class="p-google">36</span>% of budget</div>
+          </div>
+        </div>
+        <div class="splitter__ctl">
+          <span>Meta</span>
+          <input type="range" min="20" max="80" value="64" aria-label="Share of the daily budget going to Meta">
+          <span>Google</span>
+        </div>
+        <p class="splitter__hint"><i class="ph ph-hand-pointing"></i> Drag to rebalance. Smart Campaign plans and launches both platforms from this one budget.</p>
       </div>
       <div class="digest mt-2">
         <div class="dig"><i class="ph-duotone ph-trend-up" style="color:var(--ok)"></i><div><b>Scale “Inherited – Dallas” by 20%</b><span>$71 per lead vs $126 median across your 6 lead campaigns</span></div><span class="act">+20% budget</span></div>
@@ -321,8 +337,8 @@
       <h2 class="h2">Follow-up that never forgets, and knows when to shut up.</h2>
       <p class="lead">Drag a trigger, a delay, a condition and a few actions onto a canvas. The engine stops the chain the moment the seller replies, respects send windows in their timezone and caps messages per day.</p>
       <ul class="caps">
-        <li><i class="ph-duotone ph-phone-call"></i><span>Triggers: new lead, stage change, inbound message, missed call, segment, webhook</span></li>
-        <li><i class="ph-duotone ph-phone-call"></i><span>Actions: SMS, email, task, note, stage, owner round-robin, segment, AI caller</span></li>
+        <li><i class="ph-duotone ph-lightning"></i><span>Triggers: new lead, stage change, inbound message, missed call, segment, webhook</span></li>
+        <li><i class="ph-duotone ph-cursor-click"></i><span>Actions: SMS, email, task, note, stage, owner round-robin, segment, AI caller</span></li>
       </ul>
       <div class="mt-3"><a class="btn btn--ghost" href="automations.html">Explore Automations <i class="ph ph-arrow-right"></i></a></div>
     </div>
