@@ -94,13 +94,14 @@
       gsap.fromTo(dot, { opacity: 1 }, { duration: 1.4, ease: 'power2.inOut', motionPath: { path: '#op' + (k % nodes.length), align: '#op' + (k % nodes.length), alignOrigin: [0.5, 0.5] }, onComplete: () => {
         gsap.to(dot, { opacity: 0, duration: 0.2 });
         const row = rows[k % rows.length]; row.classList.add('is-on');
-        gsap.fromTo(core, { boxShadow: '0 0 0 1px rgba(34,211,238,0.9), 0 0 60px -5px rgba(34,211,238,0.9)' }, { boxShadow: '0 0 0 1px rgba(34,211,238,0.25), 0 0 40px -10px rgba(34,211,238,0.45)', duration: 0.9 });
+        gsap.fromTo(core, { boxShadow: '0 0 0 1px rgba(6,182,212,0.9), 0 0 60px -5px rgba(6,182,212,0.9)' }, { boxShadow: '0 0 0 1px rgba(6,182,212,0.25), 0 0 40px -10px rgba(6,182,212,0.45)', duration: 0.9 });
         if (bar) gsap.to(bar, { width: Math.min(100, ((k % rows.length) + 1) / rows.length * 100) + '%', duration: 0.6, ease: 'power2.out' });
         if ((k + 1) % rows.length === 0) setTimeout(() => rows.forEach(r => r.classList.remove('is-on')), 1800);
         k++;
       } });
     };
     fire(); setInterval(fire, 2200);
+    setTimeout(() => { if (!core.querySelector('.core__row.is-on')) { rows.forEach(r => r.classList.add('is-on')); if (bar) bar.style.width = '100%'; } }, 4000);
     // slow orbit rotation of the whole node layer via counter-rotating labels isn't needed; gently float nodes instead
     nodes.forEach((n, i) => gsap.to(n, { y: '+=10', duration: 3 + i * 0.4, yoyo: true, repeat: -1, ease: 'sine.inOut', delay: i * 0.2 }));
     // mouse parallax on the art
