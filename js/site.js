@@ -31,6 +31,24 @@
   /* ---------- Reveal ---------- */
   const io = new IntersectionObserver((es) => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('is-in'); io.unobserve(e.target); } }), { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
   $$('.reveal').forEach(el => io.observe(el));
+  const coarse = window.matchMedia('(pointer: coarse)').matches;
+
+  /* Scenes are decorative: never burn CPU on one that is off screen or in a hidden tab. */
+  function everyVisible(el, fn, ms, immediate = true) {
+    let timer = null;
+    const io = new IntersectionObserver(es => es.forEach(e => {
+      if (e.isIntersecting && !document.hidden) { if (!timer) { if (immediate) fn(); timer = setInterval(fn, ms); } }
+      else if (timer) { clearInterval(timer); timer = null; }
+    }), { threshold: 0.1 });
+    io.observe(el);
+    document.addEventListener('visibilitychange', () => { if (document.hidden && timer) { clearInterval(timer); timer = null; } });
+  }
+  function visibility(el) {
+    const state = { on: false };
+    new IntersectionObserver(es => es.forEach(e => state.on = e.isIntersecting), { threshold: 0.1 }).observe(el);
+    return state;
+  }
+
   function onVisible(el, fn, threshold = 0.35) {
     if (!el) return;
     const o = new IntersectionObserver((es) => es.forEach(e => { if (e.isIntersecting) { fn(el); o.unobserve(el); } }), { threshold });
@@ -102,10 +120,10 @@
       gsap.fromTo(dot, { opacity: 1 }, { duration: 1.4, ease: 'power2.inOut', motionPath: { path: '#op' + (k % nodes.length), align: '#op' + (k % nodes.length), alignOrigin: [0.5, 0.5] } });
       setTimeout(land, 1420);
     };
-    fire(); setInterval(fire, 2200);
+    everyVisible(orbit, fire, 2200);
     setTimeout(() => { if (!core.querySelector('.core__row.is-on')) { rows.forEach(r => r.classList.add('is-on')); if (bar) bar.style.width = '100%'; } }, 4000);
     // slow orbit rotation of the whole node layer via counter-rotating labels isn't needed; gently float nodes instead
-    nodes.forEach((n, i) => gsap.to(n, { y: '+=10', duration: 3 + i * 0.4, yoyo: true, repeat: -1, ease: 'sine.inOut', delay: i * 0.2 }));
+    if (!coarse) nodes.forEach((n, i) => gsap.to(n, { y: '+=10', duration: 3 + i * 0.4, yoyo: true, repeat: -1, ease: 'sine.inOut', delay: i * 0.2 }));
     // mouse parallax on the art
     const art = $('.orbit__art', orbit);
     if (art && matchMedia('(pointer:fine)').matches) orbit.addEventListener('pointermove', (e) => { const r = orbit.getBoundingClientRect(); const px = (e.clientX - r.left) / r.width - 0.5, py = (e.clientY - r.top) / r.height - 0.5; gsap.to(art, { x: px * 18, y: py * 18, duration: 0.8, ease: 'power2.out' }); });
@@ -116,7 +134,7 @@
     const lit = $('.rail--lit', pl), spark = $('.spark', pl), steps = $$('.pstep', pl);
     if (!lit) return;
     const setP = (p) => { lit.style.strokeDasharray = `${p * 1000} 1000`; lit.setAttribute('pathLength', '1000'); if (spark) spark.setAttribute('cx', (p * 100) + '%'); steps.forEach((s, i) => s.classList.toggle('is-lit', p >= (i + 0.5) / steps.length)); };
-    if (reduced || !hasGsap) { setP(1); return; }
+    if (reduced || !hasGsap || coarse) { setP(1); return; }   // no scroll-scrub on touch
     ScrollTrigger.create({ trigger: pl, start: 'top 80%', end: 'bottom 45%', scrub: 0.6, onUpdate: (st) => setP(st.progress) });
   });
 
@@ -161,7 +179,7 @@
       } else { list.prepend(m); resort(); setTimeout(() => m.classList.remove('is-new'), 900); }
       i++;
     };
-    tick(); setInterval(tick, 2600);
+    everyVisible(el, tick, 2600);
   }, 0.3));
 
   /* ---------- Call scene: typed transcript, chips fly from the mark into the fact slots ---------- */
@@ -174,9 +192,10 @@
   ];
   $$('.scene').forEach(scene => onVisible(scene, (sc) => {
     const line = $('.transcript__line', sc), facts = $$('.fact', sc), clock = $('.tclock', sc);
-    let sec = 41; if (clock) setInterval(() => { sec++; clock.textContent = String(sec % 60).padStart(2, '0'); }, 1000);
+    let sec = 41; if (clock) everyVisible(sc, () => { sec++; clock.textContent = String(sec % 60).padStart(2, '0'); }, 1000, false);
     if (reduced || !line) { if (line) line.innerHTML = lines[0].t; facts.forEach(f => f.classList.add('is-on')); return; }
     let i = 0;
+    const vis = visibility(sc);
     const flyChip = (item) => {
       const mark = $('mark', line), fact = facts[item.f]; if (!mark || !fact || !hasGsap) { fact && fact.classList.add('is-on'); return; }
       const chip = document.createElement('div'); chip.className = 'chip-fly'; chip.textContent = item.chip; sc.appendChild(chip);
@@ -186,6 +205,7 @@
       setTimeout(() => { chip.remove(); fact.classList.add('is-on'); }, 820);
     };
     const typeLine = () => {
+      if (!vis.on || document.hidden) { setTimeout(typeLine, 900); return; }
       const item = lines[i % lines.length]; if (i % lines.length === 0) facts.forEach(f => f.classList.remove('is-on'));
       const tmp = document.createElement('div'); tmp.innerHTML = item.t; const plain = tmp.textContent; let pos = 0;
       const tick = () => {
@@ -202,6 +222,7 @@
   /* ---------- SMS scene ---------- */
   $$('.phone').forEach(phone => onVisible(phone, (ph) => {
     const bubbles = $$('.bubble', ph); const side = $$('.sms-side .callout', ph.parentElement);
+    const vis = visibility(ph);
     if (reduced) { bubbles.forEach(b => b.classList.add('is-on')); side.forEach(s => s.classList.add('is-on')); return; }
     const play = () => {
       bubbles.forEach(b => b.classList.remove('is-on')); side.forEach(s => s.classList.remove('is-on'));
@@ -249,7 +270,8 @@
       gsap.to(c, { duration: 1.2, ease: 'power1.inOut', motionPath: { path: '#' + e.id, align: '#' + e.id, alignOrigin: [0.5, 0.5] } });
       setTimeout(() => { c.remove(); to && to.classList.add('is-lit'); setTimeout(() => { from && from.classList.remove('is-lit'); }, 400); }, 1220);
     };
-    let k = 0; run(0); setInterval(() => { k++; if (k % edges.length === 0) nodes.forEach(n => n.classList.remove('is-lit')); run(k); }, 1500);
+    let k = 0;
+    everyVisible(el, () => { if (k) { if (k % edges.length === 0) nodes.forEach(n => n.classList.remove('is-lit')); } run(k); k++; }, 1500);
   }, 0.3));
 
   /* ---------- Deal assembler: chips fly from sources into slots ---------- */
@@ -269,9 +291,9 @@
       setTimeout(() => { chip.remove(); slot.classList.add('is-filled'); }, 920);
       i++;
     };
-    step(); setInterval(step, 1700);
+    everyVisible(el, step, 1700);
   }, 0.3));
 
   /* ---------- Screenshots: subtle scroll parallax on frames ---------- */
-  if (hasGsap && !reduced) $$('.lift').forEach(el => gsap.fromTo(el, { y: 30 }, { y: -30, ease: 'none', scrollTrigger: { trigger: el, start: 'top bottom', end: 'bottom top', scrub: 0.8 } }));
+  if (hasGsap && !reduced && !coarse) $$('.lift').forEach(el => gsap.fromTo(el, { y: 30 }, { y: -30, ease: 'none', scrollTrigger: { trigger: el, start: 'top bottom', end: 'bottom top', scrub: 0.8 } }));
 })();
