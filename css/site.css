@@ -426,7 +426,9 @@ ul { margin: 0; padding: 0; list-style: none; }
 .splitter__ctl { display: grid; grid-template-columns: auto 1fr auto; gap: 14px; align-items: center; margin-top: 18px; font-size: 13px; font-weight: 700; color: var(--ink-2); }
 .splitter__ctl i, .splitter__ctl .ic { font-size: 16px; color: var(--cyan); vertical-align: -3px; }
 .splitter__hint { margin-top: 10px; font-size: 12.5px; color: var(--ink-3); }
-.splitter input[type=range] { -webkit-appearance: none; appearance: none; width: 100%; height: 6px; border-radius: 6px; background: linear-gradient(90deg, var(--cyan) var(--p, 64%), rgba(255,255,255,0.12) var(--p, 64%)); outline: none; cursor: grab; }
+.splitter input[type=range] { --thumb: 22px; -webkit-appearance: none; appearance: none; width: 100%; height: 6px; border-radius: 6px; outline: none; cursor: grab;
+  /* the thumb centre only travels between thumb/2 and width - thumb/2, so the fill has to follow that, not the raw % */
+  background: linear-gradient(90deg, var(--cyan) 0 calc(var(--p, 0.733) * (100% - var(--thumb)) + var(--thumb) / 2), rgba(255,255,255,0.12) calc(var(--p, 0.733) * (100% - var(--thumb)) + var(--thumb) / 2) 100%); }
 .splitter input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; border-radius: 50%; background: #fff; border: 4px solid var(--brand); box-shadow: 0 0 18px rgba(6,182,212,0.75); cursor: grab; }
 .splitter input[type=range]::-moz-range-thumb { width: 22px; height: 22px; border-radius: 50%; background: #fff; border: 4px solid var(--brand); box-shadow: 0 0 18px rgba(6,182,212,0.75); cursor: grab; }
 .splitter input[type=range]:focus-visible { outline: 2px solid var(--cyan); outline-offset: 4px; }

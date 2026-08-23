@@ -138,6 +138,9 @@
     ScrollTrigger.create({ trigger: pl, start: 'top 80%', end: 'bottom 45%', scrub: 0.6, onUpdate: (st) => setP(st.progress) });
   });
 
+  /* icons created at runtime have to reference the inline sprite, the webfont is gone */
+  const icon = (n) => `<svg class="ic" aria-hidden="true"><use href="#i-regular-${String(n).replace(/^ph-/, '')}"></use></svg>`;
+
   /* ---------- Inbox sorter: messages fly in from sources, list re-sorts with hot on top ---------- */
   $$('.sorter').forEach(sorter => onVisible(sorter, (el) => {
     const list = $('.sorter__list', el), sources = $$('.src', el);
@@ -153,7 +156,7 @@
       { src: 3, icon: 'ph-instagram-logo', who: 'P. Lindqvist', text: 'Maybe after the holidays.', tag: 'now' },
     ];
     const rank = { hot: 0, warm: 1, now: 2 };
-    const render = (item) => { const m = document.createElement('div'); m.className = 'msg is-new'; m.dataset.tag = item.tag; m.innerHTML = `<i class="ph ${item.icon}"></i><div><b>${item.who}</b><span>${item.text}</span></div><span class="tag tag--${item.tag}">${item.tag === 'now' ? 'not now' : item.tag}</span>`; return m; };
+    const render = (item) => { const m = document.createElement('div'); m.className = 'msg is-new'; m.dataset.tag = item.tag; m.innerHTML = `${icon(item.icon)}<div><b>${item.who}</b><span>${item.text}</span></div><span class="tag tag--${item.tag}">${item.tag === 'now' ? 'not now' : item.tag}</span>`; return m; };
     const resort = () => {
       const items = $$('.msg', list); const first = new Map(items.map(m => [m, m.getBoundingClientRect().top]));
       items.sort((a, b) => rank[a.dataset.tag] - rank[b.dataset.tag]).forEach(m => list.appendChild(m));
@@ -171,7 +174,7 @@
         break;
       }
       if (hasGsap && !reduced && src) {
-        const fly = document.createElement('div'); fly.className = 'flying'; fly.innerHTML = `<i class="ph ${item.icon}"></i>`; el.appendChild(fly);
+        const fly = document.createElement('div'); fly.className = 'flying'; fly.innerHTML = icon(item.icon); el.appendChild(fly);
         const er = el.getBoundingClientRect(), sr = src.getBoundingClientRect(), lr = list.getBoundingClientRect();
         gsap.set(fly, { x: sr.left - er.left + 4, y: sr.top - er.top + 4 });
         gsap.to(fly, { x: lr.left - er.left + 8, y: lr.top - er.top + 8, duration: 0.7, ease: 'power2.inOut' });
@@ -244,7 +247,10 @@
     const set = (sel, prop, val) => { const el = $(sel, sp); if (el) { if (prop === 'text') el.textContent = val; else el.style[prop] = val; } };
     const apply = (raw) => {
       const m = Math.round(raw), g = 100 - m;
-      sp.style.setProperty('--p', m + '%');
+      if (range) {
+        const min = +range.min || 0, max = +range.max || 100;
+        sp.style.setProperty('--p', ((m - min) / (max - min)).toFixed(4));   // 0..1 position on the track
+      }
       set('.t-meta', 'text', Math.round(total * m / 100));
       set('.t-google', 'text', Math.round(total * g / 100));
       set('.p-meta', 'text', m);
