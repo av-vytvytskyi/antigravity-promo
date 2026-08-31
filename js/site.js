@@ -92,6 +92,358 @@
   /* ---------- Digest ---------- */
   $$('.digest').forEach(d => onVisible(d, (el) => $$('.dig', el).forEach((x, k) => setTimeout(() => x.classList.add('is-on'), reduced ? 0 : 150 + k * 320)), 0.3));
 
+  /* ==========================================================================
+     Hero GPU scene
+     Six streams of light leave the module tiles and converge on the record
+     card; one bright packet per write. Everything here is progressive: if the
+     context, the shaders or the frame budget fail, initOrbitGL returns null
+     (or goes dormant) and the SVG orbit below stays exactly as it was.
+     ========================================================================== */
+  const FIELD_VS = `
+    attribute vec2 aPos; varying vec2 vUv;
+    void main(){ vUv = aPos * 0.5 + 0.5; gl_Position = vec4(aPos, 0.0, 1.0); }`;
+
+  const FIELD_FS = `
+    precision mediump float;
+    varying vec2 vUv;
+    uniform vec2 uRes; uniform vec2 uCore; uniform vec2 uMouse; uniform vec2 uRing;
+    uniform float uTime; uniform float uPulse;
+    float hash(vec2 p){ return fract(sin(dot(p, vec2(41.3, 289.1))) * 43758.5453); }
+    float noise(vec2 p){
+      vec2 i = floor(p), f = fract(p); vec2 u = f * f * (3.0 - 2.0 * f);
+      return mix(mix(hash(i), hash(i + vec2(1.0, 0.0)), u.x),
+                 mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), u.x), u.y);
+    }
+    float fbm(vec2 p){ float v = 0.0, a = 0.5; for (int i = 0; i < 3; i++){ v += a * noise(p); p *= 2.03; a *= 0.5; } return v; }
+    void main(){
+      float ar = uRes.x / uRes.y;
+      vec2 p = (vUv - uCore) * vec2(ar, 1.0);
+      float r = length(p);
+      float n = fbm(vUv * 3.0 + uMouse * 0.10 + vec2(uTime * 0.020, -uTime * 0.014));
+      /* the canvas is a rectangle over a dark page: everything must reach zero
+         before the edge, or the box itself becomes the brightest shape here */
+      float edge = smoothstep(0.0, 0.34, vUv.x) * smoothstep(1.0, 0.66, vUv.x)
+                 * smoothstep(0.0, 0.30, vUv.y) * smoothstep(1.0, 0.70, vUv.y);
+      edge *= edge;
+      float haze = smoothstep(0.62, 0.0, r) * (0.16 + 0.84 * n) * edge;
+      float bloom = exp(-r * r * 7.0) * (0.70 + 0.30 * uPulse);
+      float hot = exp(-r * r * 90.0) * (0.58 + 0.42 * uPulse);
+      float rad = (1.0 - uPulse) * 0.62;
+      float write = exp(-pow((r - rad) * 13.0, 2.0)) * uPulse * uPulse * 0.20;
+      /* the ellipse the six tiles stand on, with one highlight sweeping it */
+      float e = length(p / uRing);
+      float sweep = pow(cos(atan(p.y, p.x) - uTime * 0.42) * 0.5 + 0.5, 7.0);
+      float ring = exp(-pow((e - 1.0) * 22.0, 2.0)) * (0.09 + 0.42 * sweep) * edge;
+      vec3 cyan = vec3(0.024, 0.714, 0.831);
+      vec3 pale = vec3(0.55, 0.88, 0.97);
+      vec3 c = cyan * (haze * 0.34 + bloom * 0.38 + write + ring) + pale * (hot * 0.22 + ring * sweep * 0.30);
+      /* the canvas is a rectangle blended with screen: any value still alive at
+         the border becomes a visible seam down the page, so all of it fades out */
+      c *= edge;
+      /* premultiplied: alpha is the light's own coverage, so the near-black page
+         behind it is replaced by exactly as much as the glow is bright */
+      gl_FragColor = vec4(c, clamp(max(max(c.r, c.g), c.b), 0.0, 1.0));
+    }`;
+
+  const DOT_VS = `
+    precision mediump float;
+    attribute vec2 aNode; attribute vec2 aCtrl; attribute vec2 aAlt;
+    attribute float aPhase; attribute float aSpeed; attribute float aSize;
+    attribute float aDepth; attribute float aStream; attribute float aJit;
+    uniform vec2 uCore; uniform vec2 uMouse; uniform vec2 uLift;
+    uniform float uTime; uniform float uActive; uniform float uPacket; uniform float uDpr;
+    varying float vAlpha; varying float vHot;
+    vec2 bez(vec2 a, vec2 b, vec2 c, float t){ float m = 1.0 - t; return m * m * a + 2.0 * m * t * b + t * t * c; }
+    void main(){
+      vec2 pos; float alpha; float hot = 0.0;
+      if (aStream < 0.0) {
+        float s = uTime * 0.05 + aPhase * 6.283;
+        pos = aAlt + vec2(sin(s) * 0.018, cos(s * 0.77) * 0.018);
+        alpha = 0.18 + 0.30 * aPhase;
+        gl_PointSize = (1.2 + aSize * 2.0) * uDpr;
+      } else {
+        float near = step(abs(aStream - uActive), 0.5);
+        vec2 from = aNode + uLift * near;
+        vec2 ctrl = aCtrl + uLift * near * 0.5;
+        float t;
+        if (aSpeed < 0.0) {
+          t = uPacket - aPhase * 0.11;
+          if (uPacket < 0.0 || near < 0.5 || t < 0.0 || t > 1.0) { gl_Position = vec4(2.0, 2.0, 0.0, 1.0); vAlpha = 0.0; vHot = 0.0; return; }
+          alpha = (1.0 - aPhase * 0.85) * 1.5;
+          hot = 1.0;
+          gl_PointSize = (2.5 + (1.0 - aPhase) * 7.5) * uDpr;
+        } else {
+          t = fract(aPhase + uTime * aSpeed);
+          alpha = (0.26 + 0.55 * near) * smoothstep(0.0, 0.08, t) * (1.0 - smoothstep(0.95, 1.0, t));
+          hot = near * 0.5;
+          gl_PointSize = (1.3 + aSize * 2.8) * uDpr;
+        }
+        pos = bez(from, ctrl, aAlt, t);
+        vec2 dir = normalize(aAlt - from);
+        pos += vec2(-dir.y, dir.x) * aJit * 0.024 * (1.0 - t) * (1.0 - t);
+      }
+      pos += uMouse * (0.010 + aDepth * 0.042);
+      gl_Position = vec4(pos, 0.0, 1.0);
+      vAlpha = alpha * smoothstep(1.0, 0.80, abs(pos.x)) * smoothstep(1.0, 0.82, abs(pos.y));
+      vHot = hot;
+    }`;
+
+  const DOT_FS = `
+    precision mediump float;
+    varying float vAlpha; varying float vHot;
+    void main(){
+      vec2 d = gl_PointCoord - 0.5;
+      float r2 = dot(d, d);
+      if (r2 > 0.25) discard;
+      float f = exp(-r2 * 11.0) * vAlpha;
+      vec3 c = mix(vec3(0.055, 0.78, 0.90), vec3(0.80, 0.97, 1.0), vHot * 0.75) * f;
+      gl_FragColor = vec4(c, clamp(max(max(c.r, c.g), c.b), 0.0, 1.0));
+    }`;
+
+  function initOrbitGL(orbit, nodes, coreEl) {
+    const canvas = $('.orbit__gl', orbit);
+    if (!canvas || !coreEl || !nodes.length) return null;
+    let gl = null;
+    try {
+      gl = canvas.getContext('webgl', { alpha: true, premultipliedAlpha: true, antialias: false, depth: false, stencil: false, powerPreference: 'high-performance' });
+    } catch (e) { return null; }
+    if (!gl) return null;
+
+    const debug = location.search.indexOf('gldebug') > -1;
+    const shader = (type, src) => {
+      const s = gl.createShader(type);
+      gl.shaderSource(s, src); gl.compileShader(s);
+      if (gl.getShaderParameter(s, gl.COMPILE_STATUS)) return s;
+      if (debug) console.warn('orbit-gl shader:', gl.getShaderInfoLog(s));
+      return null;
+    };
+    const link = (vs, fs) => {
+      const v = shader(gl.VERTEX_SHADER, vs), f = shader(gl.FRAGMENT_SHADER, fs);
+      if (!v || !f) return null;
+      const p = gl.createProgram();
+      gl.attachShader(p, v); gl.attachShader(p, f); gl.linkProgram(p);
+      if (gl.getProgramParameter(p, gl.LINK_STATUS)) return p;
+      if (debug) console.warn('orbit-gl link:', gl.getProgramInfoLog(p));
+      return null;
+    };
+    const field = link(FIELD_VS, FIELD_FS), dots = link(DOT_VS, DOT_FS);
+    if (!field || !dots) return null;
+    /* The canvas is display:none until this class lands – measure after it, never before. */
+    orbit.classList.add('is-gl');
+
+    const S = nodes.length, FLOW = 200, PACK = 34, DUST = 260;
+    const COUNT = S * (FLOW + PACK) + DUST, STRIDE = 12;
+    const data = new Float32Array(COUNT * STRIDE);
+    const rand = (a, b) => a + Math.random() * (b - a);
+
+    /* Untransformed layout centres: the tiles bob on their own GSAP tween and
+       must not drag the beam's origin with them every frame. */
+    let cw = 0, ch = 0, dpr = 1, dprCap = 1, anchors = [], coreClip = [0, 0], liftScale = 0, ring = [0.4, 0.4], targets = [], origins = [], sized = false;
+    /* below 1080px the hero stacks and the orbit takes the full 1240px column, so
+       the buffer is capped by area, not by device pixel ratio alone */
+    const MAX_PX = 2.2e6;
+    const layout = () => {
+      const cr = canvas.getBoundingClientRect(), or_ = orbit.getBoundingClientRect();
+      /* below 760px the stylesheet hides the canvas and stacks the orbit – there
+         is nothing to measure, so hold the last state instead of rendering junk */
+      sized = cr.width > 2 && cr.height > 2;
+      if (!sized) return;
+      cw = Math.max(1, Math.round(cr.width)); ch = Math.max(1, Math.round(cr.height));
+      const ox = or_.left - cr.left, oy = or_.top - cr.top;
+      const clipC = (x, y) => [(x / cr.width) * 2 - 1, 1 - (y / cr.height) * 2];
+      const clip = (x, y) => clipC(ox + x, oy + y);
+      anchors = nodes.map(n => clip(n.offsetLeft + n.offsetWidth / 2, n.offsetTop + n.offsetHeight / 2));
+      coreClip = clip(coreEl.offsetLeft, coreEl.offsetTop);
+      /* The record card is square (212x212), so a beam aimed at its centre loses
+         most of a vertical run under it – Deals and Ads read as if they never
+         fired. Every beam runs tile-edge to card-edge, so all of its 1.4s is
+         spent somewhere visible. */
+      const kr = coreEl.getBoundingClientRect();
+      const kx = kr.left + kr.width / 2 - cr.left, ky = kr.top + kr.height / 2 - cr.top;
+      const hw = kr.width / 2 + 6, hh = kr.height / 2 + 6;
+      const edge = (px, py, ex, ey) => {                 // point where the ray to (px,py) leaves a box
+        const vx = px - kx, vy = py - ky;
+        const f = Math.min(ex / Math.max(1, Math.abs(vx)), ey / Math.max(1, Math.abs(vy)));
+        return [vx * f, vy * f];
+      };
+      targets = []; origins = [];
+      nodes.forEach(n => {
+        const ax = ox + n.offsetLeft + n.offsetWidth / 2, ay = oy + n.offsetTop + n.offsetHeight / 2;
+        const t = edge(ax, ay, hw, hh);
+        targets.push(clipC(kx + t[0], ky + t[1]));
+        const rx = n.offsetWidth / 2 + 3, ry = n.offsetHeight / 2 + 3;
+        const vx = kx - ax, vy = ky - ay;
+        const f = Math.min(rx / Math.max(1, Math.abs(vx)), ry / Math.max(1, Math.abs(vy)));
+        origins.push(clipC(ax + vx * f, ay + vy * f));
+      });
+      liftScale = 2 / cr.height;                       // px of tile bob → clip units
+      let rdx = 0, rdy = 0;
+      anchors.forEach(a => { rdx = Math.max(rdx, Math.abs(a[0] - coreClip[0])); rdy = Math.max(rdy, Math.abs(a[1] - coreClip[1])); });
+      ring = [Math.max(0.05, rdx / 2 * (cw / ch)), Math.max(0.05, rdy / 2)];
+      dpr = Math.max(0.75, Math.min(dprCap, Math.sqrt(MAX_PX / (cw * ch))));
+      canvas.width = Math.round(cw * dpr); canvas.height = Math.round(ch * dpr);
+      gl.viewport(0, 0, canvas.width, canvas.height);
+      build();
+    };
+
+    /* The card is square, so the vertical runs (Ads, Deals) are ~27% shorter than
+       the diagonal ones. Curving the short ones harder keeps them reading as arcs
+       rather than as stubs; it buys ~8px of travel, not parity. */
+    const legs = () => {
+      const l = [];
+      for (let s = 0; s < S; s++) {
+        const a = origins[s] || anchors[s] || [0, 0], g = targets[s] || coreClip;
+        l.push(Math.hypot(g[0] - a[0], g[1] - a[1]) || 1);
+      }
+      return { l, max: Math.max.apply(null, l) };
+    };
+    /* One interleaved buffer: node, ctrl, dust home, phase, speed, size, depth, stream, jitter. */
+    function build() {
+      let i = 0;
+      const put = (node, ctrl, dust, phase, speed, size, depth, stream, jit) => {
+        const o = i++ * STRIDE;
+        data[o] = node[0]; data[o + 1] = node[1];
+        data[o + 2] = ctrl[0]; data[o + 3] = ctrl[1];
+        data[o + 4] = dust[0]; data[o + 5] = dust[1];
+        data[o + 6] = phase; data[o + 7] = speed; data[o + 8] = size;
+        data[o + 9] = depth; data[o + 10] = stream; data[o + 11] = jit;
+      };
+      const leg = legs();
+      for (let s = 0; s < S; s++) {
+        const a = origins[s] || anchors[s] || [0, 0], g = targets[s] || coreClip;
+        const mx = (a[0] + g[0]) / 2, my = (a[1] + g[1]) / 2;
+        const dx = g[0] - a[0], dy = g[1] - a[1], len = leg.l[s];
+        /* one sign for every stream, so the six of them spiral the same way in */
+        const bow = 0.16 * len + 0.5 * (leg.max - len);
+        const ctrl = [mx + (-dy / len) * bow, my + (dx / len) * bow];
+        for (let n = 0; n < FLOW; n++) put(a, ctrl, g, Math.random(), rand(0.035, 0.075), Math.random(), Math.random(), s, rand(-1, 1));
+        for (let n = 0; n < PACK; n++) put(a, ctrl, g, n / PACK, -1, 1, 0.4, s, rand(-0.12, 0.12));
+      }
+      for (let n = 0; n < DUST; n++) {
+        const ang = Math.random() * Math.PI * 2, rad = Math.sqrt(Math.random()) * 1.05;
+        put([0, 0], [0, 0], [Math.cos(ang) * rad, Math.sin(ang) * rad * 0.92], Math.random(), 0, Math.random(), Math.random(), -1, 0);
+      }
+      gl.bindBuffer(gl.ARRAY_BUFFER, dotBuf);
+      gl.bufferData(gl.ARRAY_BUFFER, data, gl.DYNAMIC_DRAW);
+    }
+
+    const quad = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, quad);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+    const dotBuf = gl.createBuffer();
+
+    const uni = (p, names) => names.reduce((m, n) => (m[n] = gl.getUniformLocation(p, n), m), {});
+    const fU = uni(field, ['uRes', 'uCore', 'uMouse', 'uRing', 'uTime', 'uPulse']);
+    const dU = uni(dots, ['uCore', 'uMouse', 'uLift', 'uTime', 'uActive', 'uPacket', 'uDpr']);
+    const fA = gl.getAttribLocation(field, 'aPos');
+    const dA = ['aNode', 'aCtrl', 'aAlt', 'aPhase', 'aSpeed', 'aSize', 'aDepth', 'aStream', 'aJit']
+      .map(n => gl.getAttribLocation(dots, n));
+    const dSize = [2, 2, 2, 1, 1, 1, 1, 1, 1], dOff = [0, 2, 4, 6, 7, 8, 9, 10, 11];
+
+    dprCap = Math.min(window.devicePixelRatio || 1, 1.75);
+    layout();
+
+    gl.disable(gl.DEPTH_TEST);
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.ONE, gl.ONE);                       // premultiplied additive
+    gl.clearColor(0, 0, 0, 0);
+
+    const state = { active: 0, packet: -1, packetAt: 0, pulse: 0, pulseAt: 0, mx: 0, my: 0, tmx: 0, tmy: 0, alive: true, on: false };
+    const PACKET_MS = 1400, PULSE_MS = 1500;
+    new IntersectionObserver(es => es.forEach(e => { state.on = e.isIntersecting; }), { threshold: 0.05 }).observe(orbit);
+
+    let raf = 0, t0 = performance.now(), frames = 0, spent = 0, tier = 0;
+    const render = (now) => {
+      const t = (now - t0) / 1000;
+      state.mx += (state.tmx - state.mx) * 0.06;
+      state.my += (state.tmy - state.my) * 0.06;
+      if (state.packet >= 0) {
+        state.packet = (now - state.packetAt) / PACKET_MS;
+        if (state.packet > 1) state.packet = -1;
+      }
+      state.pulse = Math.max(0, 1 - (now - state.pulseAt) / PULSE_MS);
+
+      gl.clear(gl.COLOR_BUFFER_BIT);
+
+      gl.useProgram(field);
+      gl.bindBuffer(gl.ARRAY_BUFFER, quad);
+      gl.enableVertexAttribArray(fA);
+      gl.vertexAttribPointer(fA, 2, gl.FLOAT, false, 0, 0);
+      gl.uniform2f(fU.uRes, cw, ch);
+      gl.uniform2f(fU.uCore, (coreClip[0] + 1) / 2, (coreClip[1] + 1) / 2);
+      gl.uniform2f(fU.uMouse, state.mx, state.my);
+      gl.uniform1f(fU.uTime, t);
+      gl.uniform2f(fU.uRing, ring[0], ring[1]);
+      gl.uniform1f(fU.uPulse, state.pulse);
+      gl.drawArrays(gl.TRIANGLES, 0, 3);
+      gl.disableVertexAttribArray(fA);
+
+      gl.useProgram(dots);
+      gl.bindBuffer(gl.ARRAY_BUFFER, dotBuf);
+      dA.forEach((loc, k) => {
+        if (loc < 0) return;
+        gl.enableVertexAttribArray(loc);
+        gl.vertexAttribPointer(loc, dSize[k], gl.FLOAT, false, STRIDE * 4, dOff[k] * 4);
+      });
+      gl.uniform2f(dU.uCore, coreClip[0], coreClip[1]);
+      gl.uniform2f(dU.uMouse, state.mx, state.my);
+      const lift = hasGsap ? -(+gsap.getProperty(nodes[state.active], 'y') || 0) * liftScale : 0;
+      gl.uniform2f(dU.uLift, 0, lift);
+      gl.uniform1f(dU.uTime, t);
+      gl.uniform1f(dU.uActive, state.active);
+      gl.uniform1f(dU.uPacket, state.packet);
+      gl.uniform1f(dU.uDpr, dpr);
+      gl.drawArrays(gl.POINTS, 0, COUNT);
+      dA.forEach(loc => { if (loc >= 0) gl.disableVertexAttribArray(loc); });
+    };
+
+    const draw = (now) => {
+      raf = requestAnimationFrame(draw);
+      if (!state.on || !sized || document.hidden) return;
+      const f0 = performance.now();
+      render(now);
+      /* Frame budget: step down once, then hand the scene back to the SVG orbit. */
+      spent += performance.now() - f0;
+      if (++frames === 150) {
+        const avg = spent / frames; frames = 0; spent = 0;
+        if (avg > 11 && tier === 0) { tier = 1; dprCap = 1; layout(); }
+        else if (avg > 16 && tier === 1) { tier = 2; api.alive = false; cancelAnimationFrame(raf); orbit.classList.remove('is-gl'); }
+      }
+    };
+    render(t0);                       // paint one frame now, so the canvas is never blank
+    raf = requestAnimationFrame(draw);
+
+    canvas.addEventListener('webglcontextlost', (e) => { e.preventDefault(); api.alive = false; cancelAnimationFrame(raf); orbit.classList.remove('is-gl'); });
+    let rt = 0;
+    window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => { if (api.alive) layout(); }, 200); });
+
+    const api = {
+      alive: true,
+      emit(k) {
+        if (!api.alive) return false;
+        state.active = k; state.packet = 0; state.packetAt = performance.now();
+        return true;
+      },
+      land() { state.pulseAt = performance.now(); state.pulse = 1; },
+      point(px, py) { state.tmx = px; state.tmy = py; },
+    };
+    if (debug) {
+      /* ?gldebug – step the scene by hand, which is the only way to inspect it
+         in a headless or backgrounded tab where rAF never fires. */
+      api.frame = (sec, o) => {
+        o = o || {};
+        const now = t0 + sec * 1000;
+        if (o.active !== undefined) state.active = o.active;
+        if (o.packet !== undefined) { state.packetAt = now - o.packet * PACKET_MS; state.packet = 0; }
+        if (o.pulse !== undefined) state.pulseAt = now - (1 - o.pulse) * PULSE_MS;
+        if (o.mouse) { state.tmx = state.mx = o.mouse[0]; state.tmy = state.my = o.mouse[1]; }
+        render(now);
+      };
+      orbit.__gl = api;
+    }
+    return api;
+  }
+
   /* ---------- Hero orbit: nodes on an ellipse, particles travel node → core, core fills ---------- */
   $$('.orbit').forEach(orbit => {
     const nodes = $$('.node', orbit), svg = $('svg', orbit), core = $('.core', orbit);
@@ -105,28 +457,49 @@
       nodes.map((n, k) => `<circle class="dot" r="4" id="od${k}" opacity="0"/>`).join('');
     const rows = $$('.core__row', core), bar = $('.core__bar i', core);
     if (reduced || !hasGsap) { rows.forEach(r => r.classList.add('is-on')); if (bar) bar.style.width = '100%'; return; }
+    /* Below 760px the orbit is already a stacked grid – no scene to render there. */
+    let glScene = null;
+    const startGl = () => { if (!glScene && matchMedia('(min-width: 761px)').matches) glScene = initOrbitGL(orbit, nodes, core); };
+    startGl();
+    /* a tab that loads prerendered or below 761px still gets the scene once it
+       is actually wide enough – otherwise it would be skipped for the session */
+    if (!glScene) { let gt = 0; window.addEventListener('resize', () => { clearTimeout(gt); gt = setTimeout(startGl, 250); }); }
     let k = 0;
     const fire = () => {
-      const n = nodes[k % nodes.length], dot = $('#od' + (k % nodes.length), svg);
+      const idx = k % nodes.length, n = nodes[idx], dot = $('#od' + idx, svg);
       nodes.forEach(x => x.classList.remove('is-lit')); n.classList.add('is-lit');
+      const onGl = !!(glScene && glScene.emit(idx));
       const land = () => {
-        gsap.to(dot, { opacity: 0, duration: 0.2 });
+        if (onGl) glScene.land(); else gsap.to(dot, { opacity: 0, duration: 0.2 });
         const row = rows[k % rows.length]; row.classList.add('is-on');
-        gsap.fromTo(core, { boxShadow: '0 0 0 1px rgba(6,182,212,0.9), 0 0 60px -5px rgba(6,182,212,0.9)' }, { boxShadow: '0 0 0 1px rgba(6,182,212,0.25), 0 0 40px -10px rgba(6,182,212,0.45)', duration: 0.9 });
+        gsap.fromTo(core, { boxShadow: '0 0 0 1px rgba(6,182,212,0.5), 0 0 52px -10px rgba(6,182,212,0.5)' }, { boxShadow: '0 0 0 1px rgba(6,182,212,0.25), 0 0 40px -10px rgba(6,182,212,0.45)', duration: 1.3, ease: 'power2.out' });
         if (bar) gsap.to(bar, { width: Math.min(100, ((k % rows.length) + 1) / rows.length * 100) + '%', duration: 0.6, ease: 'power2.out' });
         if ((k + 1) % rows.length === 0) setTimeout(() => rows.forEach(r => r.classList.remove('is-on')), 1800);
         k++;
       };
-      gsap.fromTo(dot, { opacity: 1 }, { duration: 1.4, ease: 'power2.inOut', motionPath: { path: '#op' + (k % nodes.length), align: '#op' + (k % nodes.length), alignOrigin: [0.5, 0.5] } });
+      if (!onGl) gsap.fromTo(dot, { opacity: 1 }, { duration: 1.4, ease: 'power2.inOut', motionPath: { path: '#op' + idx, align: '#op' + idx, alignOrigin: [0.5, 0.5] } });
       setTimeout(land, 1420);
     };
     everyVisible(orbit, fire, 2200);
     setTimeout(() => { if (!core.querySelector('.core__row.is-on')) { rows.forEach(r => r.classList.add('is-on')); if (bar) bar.style.width = '100%'; } }, 4000);
     // slow orbit rotation of the whole node layer via counter-rotating labels isn't needed; gently float nodes instead
     if (!coarse) nodes.forEach((n, i) => gsap.to(n, { y: '+=10', duration: 3 + i * 0.4, yoyo: true, repeat: -1, ease: 'sine.inOut', delay: i * 0.2 }));
-    // mouse parallax on the art
+    // mouse parallax – the GPU scene takes it as depth, the fallback moves the art
     const art = $('.orbit__art', orbit);
-    if (art && matchMedia('(pointer:fine)').matches) orbit.addEventListener('pointermove', (e) => { const r = orbit.getBoundingClientRect(); const px = (e.clientX - r.left) / r.width - 0.5, py = (e.clientY - r.top) / r.height - 0.5; gsap.to(art, { x: px * 18, y: py * 18, duration: 0.8, ease: 'power2.out' }); });
+    if (matchMedia('(pointer:fine)').matches) {
+      orbit.addEventListener('pointermove', (e) => {
+        const r = orbit.getBoundingClientRect();
+        const px = (e.clientX - r.left) / r.width - 0.5, py = (e.clientY - r.top) / r.height - 0.5;
+        /* depth comes from the shader's own parallax, not from a 3D transform on
+           .orbit: rotating that layer would rasterise the record card's text */
+        if (glScene && glScene.alive) glScene.point(px * 2, -py * 2);
+        if (art) gsap.to(art, { x: px * (glScene && glScene.alive ? 10 : 18), y: py * (glScene && glScene.alive ? 10 : 18), duration: 0.8, ease: 'power2.out' });
+      });
+      orbit.addEventListener('pointerleave', () => {
+        if (glScene && glScene.alive) glScene.point(0, 0);
+        if (art) gsap.to(art, { x: 0, y: 0, duration: 1.1, ease: 'power2.out' });
+      });
+    }
   });
 
   /* ---------- Pipeline: scroll-scrubbed light along the rail ---------- */

@@ -70,6 +70,7 @@
       </div>
     </div>
     <div class="orbit" aria-hidden="true">
+      <canvas class="orbit__gl"></canvas>
       <div class="orbit__art"><img decoding="async" src="assets/ill-hero.jpg" alt="" loading="eager" srcset="assets/ill-hero-sm.jpg 700w, assets/ill-hero.jpg 1400w" sizes="(max-width: 760px) 94vw, 720px"></div>
       <svg></svg>
       <div class="node" data-label="Ads"><img loading="lazy" decoding="async" class="node__3d" src="assets/icons/ads.png" alt=""></div>
@@ -432,9 +433,12 @@
   </div>
 </footer>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/MotionPathPlugin.min.js"></script>
+<!-- GSAP is self-hosted: the app serves these pages under a CSP whose script-src
+     is 'self', so the cdnjs build was blocked and the whole motion layer was dead
+     on the app's own domain. Same 3.12.5 files, no third-party origin. -->
+<script src="js/vendor/gsap.min.js"></script>
+<script src="js/vendor/ScrollTrigger.min.js"></script>
+<script src="js/vendor/MotionPathPlugin.min.js"></script>
 <script src="js/site.js" defer></script>
 </body>
 </html>
